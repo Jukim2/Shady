@@ -1,0 +1,19 @@
+schema: shadow-factory-config/v2
+output: output
+strict: true
+defaults:
+  resolution: 56
+  polish_iterations: 6
+  acceptance:
+    min_target_iou: 0.88
+    min_shadow_retention: 0.990
+    max_player_target_iou: 0.72
+levels:
+  - {id: A_cat_blocks, category: A, target: assets/targets/cat.png, seed: 101}
+  - {id: B_bird_organic, category: B, target: assets/targets/bird.png, seed: 202}
+  - {id: C_elephant_ribbon, category: C, target: assets/targets/elephant.png, seed: 303}
+  - {id: D1_fish_disc_rod, category: D1, target: assets/targets/fish.png, seed: 401}
+  - {id: D2_horse_tubular, category: D2, target: assets/targets/horse.png, seed: 402}
+  - {id: D3_cat_ribs, category: D3, target: assets/targets/cat.png, seed: 403}
+  - {id: E_teapot_stack, category: E, target: assets/targets/teapot.png, seed: 501, resolution: 60}
+  - {id: F_elephant_dual, category: F, target: assets/targets/elephant.png, seed: 601, resolution: 64}

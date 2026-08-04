@@ -1,0 +1,41 @@
+{
+  "schema": "shadow-factory-level/v2",
+  "id": "F_elephant_dual",
+  "category": "F",
+  "category_name": "DUAL-LIGHT VOLUME",
+  "light_mode": "dual",
+  "gameplay": "rotate_only",
+  "solution": {
+    "rotation_euler_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "files": {
+    "model": "model.obj",
+    "target": "target.png",
+    "shadow": "shadow.png",
+    "player_view": "player_view.png",
+    "player_silhouette": "player_silhouette.png",
+    "target_secondary": "target_secondary.png",
+    "shadow_secondary": "shadow_secondary.png"
+  },
+  "metrics": {
+    "level_id": "F_elephant_dual",
+    "category": "F",
+    "status": "PASS",
+    "target_iou": 0.9671497270600468,
+    "secondary_target_iou": 0.9683231429686484,
+    "shadow_retention": 1.0,
+    "player_target_iou": 0.5683938210492276,
+    "vertices": 45418,
+    "triangles": 90832,
+    "components": 1,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "degenerate_triangles": 0,
+    "generation_seconds": 2.9811656809997658,
+    "warnings": []
+  }
+}

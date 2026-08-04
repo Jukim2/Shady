@@ -1,0 +1,15 @@
+schema: shadow-factory-config/v2
+output: smoke_output
+strict: false
+defaults:
+  resolution: 40
+  polish_iterations: 3
+  acceptance:
+    min_target_iou: 0.82
+    min_shadow_retention: 0.985
+    max_player_target_iou: 0.78
+levels:
+  - {id: smoke_A, category: A, target: assets/targets/cat.png, seed: 101}
+  - {id: smoke_D1, category: D1, target: assets/targets/fish.png, seed: 401}
+  - {id: smoke_E, category: E, target: assets/targets/teapot.png, seed: 501, resolution: 52}
+  - {id: smoke_F, category: F, target: assets/targets/elephant.png, seed: 601, resolution: 44}

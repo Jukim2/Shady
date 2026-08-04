@@ -1,0 +1,39 @@
+{
+  "schema": "shadow-factory-level/v2",
+  "id": "D3_cat_ribs",
+  "category": "D3",
+  "category_name": "ROUNDED RIBS",
+  "light_mode": "directional",
+  "gameplay": "rotate_only",
+  "solution": {
+    "rotation_euler_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "files": {
+    "model": "model.obj",
+    "target": "target.png",
+    "shadow": "shadow.png",
+    "player_view": "player_view.png",
+    "player_silhouette": "player_silhouette.png"
+  },
+  "metrics": {
+    "level_id": "D3_cat_ribs",
+    "category": "D3",
+    "status": "PASS",
+    "target_iou": 0.9614637469095313,
+    "secondary_target_iou": null,
+    "shadow_retention": 1.0,
+    "player_target_iou": 0.6995018091038062,
+    "vertices": 24756,
+    "triangles": 49508,
+    "components": 1,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "degenerate_triangles": 0,
+    "generation_seconds": 1.617696619000526,
+    "warnings": []
+  }
+}

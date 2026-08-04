@@ -1,0 +1,39 @@
+{
+  "schema": "shadow-factory-level/v2",
+  "id": "A_cat_blocks",
+  "category": "A",
+  "category_name": "ORTHOGRAPHIC CSG",
+  "light_mode": "directional",
+  "gameplay": "rotate_only",
+  "solution": {
+    "rotation_euler_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "files": {
+    "model": "model.obj",
+    "target": "target.png",
+    "shadow": "shadow.png",
+    "player_view": "player_view.png",
+    "player_silhouette": "player_silhouette.png"
+  },
+  "metrics": {
+    "level_id": "A_cat_blocks",
+    "category": "A",
+    "status": "PASS",
+    "target_iou": 0.9613778837300236,
+    "secondary_target_iou": null,
+    "shadow_retention": 1.0,
+    "player_target_iou": 0.6997142099525647,
+    "vertices": 38154,
+    "triangles": 76304,
+    "components": 1,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "degenerate_triangles": 0,
+    "generation_seconds": 5.40746541200042,
+    "warnings": []
+  }
+}

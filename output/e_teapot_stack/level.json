@@ -1,0 +1,39 @@
+{
+  "schema": "shadow-factory-level/v2",
+  "id": "E_teapot_stack",
+  "category": "E",
+  "category_name": "OCCLUSION STACK",
+  "light_mode": "point",
+  "gameplay": "rotate_only",
+  "solution": {
+    "rotation_euler_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "files": {
+    "model": "model.obj",
+    "target": "target.png",
+    "shadow": "shadow.png",
+    "player_view": "player_view.png",
+    "player_silhouette": "player_silhouette.png"
+  },
+  "metrics": {
+    "level_id": "E_teapot_stack",
+    "category": "E",
+    "status": "PASS",
+    "target_iou": 0.9659369157469393,
+    "secondary_target_iou": null,
+    "shadow_retention": 1.0,
+    "player_target_iou": 0.28755730888154385,
+    "vertices": 28378,
+    "triangles": 56744,
+    "components": 3,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "degenerate_triangles": 0,
+    "generation_seconds": 1.755275344000438,
+    "warnings": []
+  }
+}
