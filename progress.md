@@ -10,8 +10,10 @@ Original prompt: 이거 github에 public 레포파고, 우리 프로젝트 좀 �
 - npm 단위 테스트 4개와 프로덕션 빌드가 통과했고 8개 OBJ를 포함한 16MB 산출물을 확인했다.
 - GitHub Pages 배포 및 Python 생성기 CI 워크플로를 추가했다.
 - Python 전용 가상환경에서 4개 스모크 레벨이 모두 PASS했다.
+- 공개 저장소 `Jukim2/Shady`를 만들고 `main`을 push했다.
+- Pages/CI 첫 실행이 모두 성공했고 공개 CDN에서 HTML, JS, CSS, OBJ 응답을 확인했다.
 
 ## TODO
 
-- 초기 로드 번들 분리 후 최종 테스트 및 프로덕션 빌드
-- Git 초기화, 공개 GitHub 저장소 생성, push, Pages 확인
+- 실제 iPhone/Android에서 회전 감도와 88% 클리어 체감을 수동 점검한다.
+- 네이티브 배포 단계에서 웹뷰 셸, 햅틱, 사운드, 앱 수명주기를 연결한다.
