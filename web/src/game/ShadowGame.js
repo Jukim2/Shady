@@ -6,7 +6,7 @@ import { CLEAR_SCORE, SCORE_SIZE, intersectionOverUnion } from "./scoring.js";
 
 const DEG = Math.PI / 180;
 const WHITE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-const DISPLAY_SIZE = 256;
+const PROJECTION_SIZE = 256;
 
 function loadImageMask(url) {
   return new Promise((resolve, reject) => {
@@ -37,13 +37,8 @@ export class ShadowGame {
     this.destroyed = false;
     this.score = 0;
     this.scoreTimer = null;
+    this.lastScoreAt = 0;
     this.frame = null;
-    this.shadowCanvas = callbacks.shadowCanvas || null;
-    this.shadowContext = this.shadowCanvas?.getContext("2d") || null;
-    this.shadowBuffer = document.createElement("canvas");
-    this.shadowBuffer.width = SCORE_SIZE;
-    this.shadowBuffer.height = SCORE_SIZE;
-    this.shadowBufferContext = this.shadowBuffer.getContext("2d");
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -57,8 +52,8 @@ export class ShadowGame {
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x607f77, 7, 14);
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    this.camera.position.set(3.8, -6.8, 3.05);
-    this.camera.lookAt(0, 0.3, -0.05);
+    this.camera.position.set(4.65, -7.25, 3.25);
+    this.camera.lookAt(-0.35, 0.05, -0.05);
 
     this.objectRoot = new THREE.Group();
     this.objectRoot.rotation.order = "ZYX";
@@ -96,22 +91,28 @@ export class ShadowGame {
   }
 
   buildEnvironment() {
+    const projectionBasis = new THREE.Matrix4().makeBasis(
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(1, 0, 0),
+    );
+
     const wallFrame = new THREE.Mesh(
-      new THREE.PlaneGeometry(7.55, 5.15),
+      new THREE.PlaneGeometry(5.55, 4.65),
       new THREE.MeshStandardMaterial({ color: 0x35544d, roughness: 0.96 }),
     );
-    wallFrame.rotation.x = Math.PI / 2;
-    wallFrame.position.set(0, 2.15, 0.45);
+    wallFrame.setRotationFromMatrix(projectionBasis);
+    wallFrame.position.set(-1.94, 0, 0.85);
     this.environment.add(wallFrame);
 
-    const shadowWall = new THREE.Mesh(
-      new THREE.PlaneGeometry(7.2, 4.8),
+    this.shadowWall = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.25, 4.35),
       new THREE.MeshStandardMaterial({ color: 0xe9dfc7, roughness: 0.94, metalness: 0 }),
     );
-    shadowWall.rotation.x = Math.PI / 2;
-    shadowWall.position.set(0, 2.1, 0.45);
-    shadowWall.receiveShadow = true;
-    this.environment.add(shadowWall);
+    this.shadowWall.setRotationFromMatrix(projectionBasis);
+    this.shadowWall.position.set(-1.9, 0, 0.85);
+    this.shadowWall.receiveShadow = true;
+    this.environment.add(this.shadowWall);
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(12, 11),
@@ -132,18 +133,22 @@ export class ShadowGame {
 
     this.scene.add(new THREE.HemisphereLight(0xdceae3, 0x294940, 1.15));
 
-    const lightPosition = new THREE.Vector3(-3.2, -4.1, 4.2);
+    const lightPosition = new THREE.Vector3(5.5, 0, 0.15);
     const lightTarget = new THREE.Object3D();
-    lightTarget.position.set(0, 2.05, 0.2);
+    lightTarget.position.set(-2.2, 0, 0.15);
     this.environment.add(lightTarget);
 
-    const key = new THREE.SpotLight(0xffdfa0, 72, 18, Math.PI * 0.21, 0.72, 1.35);
+    const key = new THREE.DirectionalLight(0xffdfa0, 4.8);
     key.position.copy(lightPosition);
     key.target = lightTarget;
     key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.mapSize.set(1536, 1536);
     key.shadow.camera.near = 0.5;
-    key.shadow.camera.far = 18;
+    key.shadow.camera.far = 12;
+    key.shadow.camera.left = -2.25;
+    key.shadow.camera.right = 2.25;
+    key.shadow.camera.top = 2.25;
+    key.shadow.camera.bottom = -2.25;
     key.shadow.bias = -0.00035;
     key.shadow.normalBias = 0.025;
     key.shadow.radius = 4;
@@ -159,7 +164,7 @@ export class ShadowGame {
     const beamDirection = lightTarget.position.clone().sub(lightPosition);
     const beamLength = beamDirection.length();
     const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(2.05, 0.08, beamLength, 48, 1, true),
+      new THREE.CylinderGeometry(2.1, 1.45, beamLength, 48, 1, true),
       new THREE.MeshBasicMaterial({
         color: 0xffe8b4,
         transparent: true,
@@ -220,6 +225,7 @@ export class ShadowGame {
       this.model = object;
       this.objectRoot.add(object);
       this.targetMasks = targetMasks;
+      this.addTargetProjection(targetMasks[0]);
       this.reset(false);
       this.loaded = true;
       this.callbacks.onReady?.();
@@ -227,6 +233,64 @@ export class ShadowGame {
     } catch (error) {
       this.callbacks.onError?.(error);
     }
+  }
+
+  addTargetProjection(targetMask) {
+    const canvas = document.createElement("canvas");
+    canvas.width = PROJECTION_SIZE;
+    canvas.height = PROJECTION_SIZE;
+    const context = canvas.getContext("2d");
+    const source = document.createElement("canvas");
+    source.width = SCORE_SIZE;
+    source.height = SCORE_SIZE;
+    const sourceContext = source.getContext("2d");
+    const image = sourceContext.createImageData(SCORE_SIZE, SCORE_SIZE);
+
+    for (let index = 0; index < targetMask.length; index += 1) {
+      const x = index % SCORE_SIZE;
+      const y = Math.floor(index / SCORE_SIZE);
+      const isTarget = targetMask[index] > 110;
+      const isEdge = isTarget && (
+        x === 0 || y === 0 || x === SCORE_SIZE - 1 || y === SCORE_SIZE - 1 ||
+        targetMask[index - 1] <= 110 || targetMask[index + 1] <= 110 ||
+        targetMask[index - SCORE_SIZE] <= 110 || targetMask[index + SCORE_SIZE] <= 110
+      );
+      if (!isTarget) continue;
+      image.data[index * 4] = 237;
+      image.data[index * 4 + 1] = 112;
+      image.data[index * 4 + 2] = 72;
+      image.data[index * 4 + 3] = isEdge ? 235 : 18;
+    }
+
+    sourceContext.putImageData(image, 0, 0);
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(source, 0, 0, PROJECTION_SIZE, PROJECTION_SIZE);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    const goal = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        toneMapped: false,
+      }),
+    );
+    const projectionBasis = new THREE.Matrix4().makeBasis(
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(1, 0, 0),
+    );
+    goal.setRotationFromMatrix(projectionBasis);
+    goal.position.set(-1.87, 0, 0);
+    goal.renderOrder = 3;
+    this.environment.add(goal);
+    this.goalProjection = goal;
   }
 
   onPointerDown(event) {
@@ -271,45 +335,15 @@ export class ShadowGame {
   }
 
   scheduleScore() {
-    window.clearTimeout(this.scoreTimer);
-    this.scoreTimer = window.setTimeout(() => this.measureScore(), 72);
+    if (this.scoreTimer !== null) return;
+    const delay = Math.max(0, 48 - (performance.now() - this.lastScoreAt));
+    this.scoreTimer = window.setTimeout(() => {
+      this.scoreTimer = null;
+      this.measureScore();
+    }, delay);
   }
 
-  paintShadowPreview(mask, targetMask) {
-    if (!this.shadowContext || !this.shadowBufferContext) return;
-    const image = this.shadowBufferContext.createImageData(SCORE_SIZE, SCORE_SIZE);
-    for (let index = 0; index < mask.length; index += 1) {
-      const coverage = mask[index] / 255;
-      const x = index % SCORE_SIZE;
-      const y = Math.floor(index / SCORE_SIZE);
-      const isTarget = targetMask[index] > 110;
-      const isTargetEdge = isTarget && (
-        x === 0 || y === 0 || x === SCORE_SIZE - 1 || y === SCORE_SIZE - 1 ||
-        targetMask[index - 1] <= 110 || targetMask[index + 1] <= 110 ||
-        targetMask[index - SCORE_SIZE] <= 110 || targetMask[index + SCORE_SIZE] <= 110
-      );
-      const ghost = isTarget ? 0.055 : 0;
-      const shadowStrength = coverage * 0.82;
-      let red = 246 * (1 - shadowStrength) + 46 * shadowStrength;
-      let green = 237 * (1 - shadowStrength) + 53 * shadowStrength;
-      let blue = 211 * (1 - shadowStrength) + 49 * shadowStrength;
-      red = red * (1 - ghost) + 237 * ghost;
-      green = green * (1 - ghost) + 112 * ghost;
-      blue = blue * (1 - ghost) + 72 * ghost;
-      if (isTargetEdge) [red, green, blue] = [237, 112, 72];
-      image.data[index * 4] = Math.round(red);
-      image.data[index * 4 + 1] = Math.round(green);
-      image.data[index * 4 + 2] = Math.round(blue);
-      image.data[index * 4 + 3] = 255;
-    }
-    this.shadowBufferContext.putImageData(image, 0, 0);
-    this.shadowContext.imageSmoothingEnabled = true;
-    this.shadowContext.imageSmoothingQuality = "high";
-    this.shadowContext.clearRect(0, 0, DISPLAY_SIZE, DISPLAY_SIZE);
-    this.shadowContext.drawImage(this.shadowBuffer, 0, 0, DISPLAY_SIZE, DISPLAY_SIZE);
-  }
-
-  renderMask(camera, targetMask, showPreview = false) {
+  renderMask(camera, targetMask) {
     const pixels = new Uint8Array(SCORE_SIZE * SCORE_SIZE * 4);
     const previousTarget = this.renderer.getRenderTarget();
     const previousOverride = this.scene.overrideMaterial;
@@ -339,13 +373,15 @@ export class ShadowGame {
     this.scene.overrideMaterial = previousOverride;
     this.environment.visible = previousEnvironment;
     this.renderer.setClearColor(previousClear, previousAlpha);
-    if (showPreview) this.paintShadowPreview(renderedMask, targetMask);
     return intersectionOverUnion(renderedMask, targetMask);
   }
 
   measureScore() {
     if (!this.loaded || this.destroyed) return 0;
-    const scores = [this.renderMask(this.scoreCameraX, this.targetMasks[0], true)];
+    window.clearTimeout(this.scoreTimer);
+    this.scoreTimer = null;
+    this.lastScoreAt = performance.now();
+    const scores = [this.renderMask(this.scoreCameraX, this.targetMasks[0])];
     if (this.targetMasks[1]) scores.push(this.renderMask(this.scoreCameraY, this.targetMasks[1]));
     this.score = Math.min(...scores);
     this.callbacks.onScore?.(this.score, this.score >= CLEAR_SCORE);
@@ -390,7 +426,7 @@ export class ShadowGame {
     return {
       mode: "play",
       level: this.level.id,
-      coordinateSystem: "right-handed; Z is up; drag rotates around world Y/Z axes",
+      coordinateSystem: "right-handed; Z is up; camera-relative arcball; shadow projects along world -X onto a YZ wall",
       rotationDeg: [euler.x, euler.y, euler.z].map((value) => Math.round(value / DEG)),
       match: Math.round(this.score * 100),
       clearAt: Math.round(CLEAR_SCORE * 100),

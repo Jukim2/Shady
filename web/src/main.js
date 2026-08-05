@@ -132,21 +132,6 @@ function renderPlay(levelId) {
       </header>
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
-        <div class="shadow-compare" id="shadow-compare" aria-label="현재 그림자와 목표 윤곽선 비교">
-          <div class="shadow-heading">
-            <span><i></i>LIGHT SCREEN</span>
-            <strong id="match-state">윤곽을 따라 맞춰보세요</strong>
-          </div>
-          <div class="shadow-stage">
-            <canvas id="current-shadow" width="256" height="256" aria-label="현재 그림자와 ${level.title} 목표 윤곽선"></canvas>
-            <span class="screen-glow" aria-hidden="true"></span>
-          </div>
-          <div class="shadow-legend" aria-hidden="true">
-            <span><i class="current-key"></i>현재 그림자</span>
-            <span><i class="target-key"></i>목표 윤곽</span>
-          </div>
-          ${level.assets.targetSecondary ? `<div class="secondary-goal"><span>두 번째 목표</span><img src="${level.assets.targetSecondary}" alt="두 번째 목표 실루엣" /></div>` : ""}
-        </div>
         <div class="loading-panel" id="loading-panel"><span class="loader"></span><p>형태를 불러오는 중</p></div>
         <div class="gesture-tip" id="gesture-tip">${icon("rotate")}<span>손가락을 움직이는 방향으로 돌려보세요</span></div>
       </section>
@@ -174,7 +159,6 @@ function renderPlay(levelId) {
     if (routeState !== playState) return;
     const canvas = document.querySelector("#game-canvas");
     game = new ShadowGame(canvas, level, {
-      shadowCanvas: document.querySelector("#current-shadow"),
       onReady: () => {
         routeState.loaded = true;
         document.querySelector("#loading-panel")?.classList.add("hidden");
@@ -184,19 +168,9 @@ function renderPlay(levelId) {
         routeState.match = Math.round(score * 100);
         const label = document.querySelector("#score-label");
         const fill = document.querySelector("#score-fill");
-        const compare = document.querySelector("#shadow-compare");
-        const matchState = document.querySelector("#match-state");
         const scoreMessage = document.querySelector("#score-message");
         if (label) label.textContent = scoreLabel(score);
         if (fill) fill.style.width = `${Math.max(4, score * 100)}%`;
-        if (compare) {
-          compare.style.setProperty("--match", score.toFixed(2));
-          compare.classList.toggle("is-close", score >= 0.68);
-          compare.classList.toggle("is-near", score >= 0.82);
-        }
-        if (matchState) {
-          matchState.textContent = score >= 0.82 ? "거의 다 왔어요" : score >= 0.68 ? "형태가 보이기 시작해요" : "윤곽을 따라 맞춰보세요";
-        }
         if (scoreMessage) {
           scoreMessage.textContent = score >= 0.82 ? "정답 직전 · 조금만 더" : score >= 0.68 ? "좋아요 · 형태가 보여요" : score >= 0.4 ? "빛의 방향을 좁히는 중" : "숨은 형태를 찾는 중";
         }
