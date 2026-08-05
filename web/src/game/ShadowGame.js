@@ -218,14 +218,31 @@ export class ShadowGame {
     this.scoreTimer = window.setTimeout(() => this.measureScore(), 72);
   }
 
-  paintShadowPreview(mask) {
+  paintShadowPreview(mask, targetMask) {
     if (!this.shadowContext || !this.shadowBufferContext) return;
     const image = this.shadowBufferContext.createImageData(SCORE_SIZE, SCORE_SIZE);
     for (let index = 0; index < mask.length; index += 1) {
       const coverage = mask[index] / 255;
-      image.data[index * 4] = Math.round(16 + coverage * 228);
-      image.data[index * 4 + 1] = Math.round(29 + coverage * 209);
-      image.data[index * 4 + 2] = Math.round(26 + coverage * 199);
+      const x = index % SCORE_SIZE;
+      const y = Math.floor(index / SCORE_SIZE);
+      const isTarget = targetMask[index] > 110;
+      const isTargetEdge = isTarget && (
+        x === 0 || y === 0 || x === SCORE_SIZE - 1 || y === SCORE_SIZE - 1 ||
+        targetMask[index - 1] <= 110 || targetMask[index + 1] <= 110 ||
+        targetMask[index - SCORE_SIZE] <= 110 || targetMask[index + SCORE_SIZE] <= 110
+      );
+      const ghost = isTarget ? 0.055 : 0;
+      const shadowStrength = coverage * 0.82;
+      let red = 246 * (1 - shadowStrength) + 46 * shadowStrength;
+      let green = 237 * (1 - shadowStrength) + 53 * shadowStrength;
+      let blue = 211 * (1 - shadowStrength) + 49 * shadowStrength;
+      red = red * (1 - ghost) + 237 * ghost;
+      green = green * (1 - ghost) + 112 * ghost;
+      blue = blue * (1 - ghost) + 72 * ghost;
+      if (isTargetEdge) [red, green, blue] = [237, 112, 72];
+      image.data[index * 4] = Math.round(red);
+      image.data[index * 4 + 1] = Math.round(green);
+      image.data[index * 4 + 2] = Math.round(blue);
       image.data[index * 4 + 3] = 255;
     }
     this.shadowBufferContext.putImageData(image, 0, 0);
@@ -265,7 +282,7 @@ export class ShadowGame {
     this.scene.overrideMaterial = previousOverride;
     this.environment.visible = previousEnvironment;
     this.renderer.setClearColor(previousClear, previousAlpha);
-    if (showPreview) this.paintShadowPreview(renderedMask);
+    if (showPreview) this.paintShadowPreview(renderedMask, targetMask);
     return intersectionOverUnion(renderedMask, targetMask);
   }
 

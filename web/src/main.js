@@ -124,18 +124,18 @@ function renderPlay(levelId) {
       ${pageHeader({ eyebrow: `${category.number} · LEVEL ${String(level.order).padStart(2, "0")}`, title: level.title, back: `#/category/${level.category}` })}
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
-        <div class="shadow-compare" aria-label="현재 그림자와 목표 그림자 비교">
-          <p><strong>그림자를 맞춰보세요</strong><span>물체를 드래그하면 바로 바뀝니다</span></p>
-          <div class="shadow-pair">
-            <figure class="shadow-card current-shadow-card">
-              <figcaption><i></i>현재 그림자</figcaption>
-              <canvas id="current-shadow" width="256" height="256" aria-label="현재 그림자"></canvas>
-            </figure>
-            <span class="compare-arrow" aria-hidden="true">→</span>
-            <figure class="shadow-card target-card">
-              <figcaption><i></i>목표</figcaption>
-              <img src="${level.assets.target}" alt="${level.title} 목표 실루엣" />
-            </figure>
+        <div class="shadow-compare" id="shadow-compare" aria-label="현재 그림자와 목표 윤곽선 비교">
+          <div class="shadow-heading">
+            <span><i></i>LIGHT SCREEN</span>
+            <strong id="match-state">윤곽을 따라 맞춰보세요</strong>
+          </div>
+          <div class="shadow-stage">
+            <canvas id="current-shadow" width="256" height="256" aria-label="현재 그림자와 ${level.title} 목표 윤곽선"></canvas>
+            <span class="screen-glow" aria-hidden="true"></span>
+          </div>
+          <div class="shadow-legend" aria-hidden="true">
+            <span><i class="current-key"></i>현재 그림자</span>
+            <span><i class="target-key"></i>목표 윤곽</span>
           </div>
           ${level.assets.targetSecondary ? `<div class="secondary-goal"><span>두 번째 목표</span><img src="${level.assets.targetSecondary}" alt="두 번째 목표 실루엣" /></div>` : ""}
         </div>
@@ -173,8 +173,18 @@ function renderPlay(levelId) {
         routeState.match = Math.round(score * 100);
         const label = document.querySelector("#score-label");
         const fill = document.querySelector("#score-fill");
+        const compare = document.querySelector("#shadow-compare");
+        const matchState = document.querySelector("#match-state");
         if (label) label.textContent = scoreLabel(score);
         if (fill) fill.style.width = `${Math.max(4, score * 100)}%`;
+        if (compare) {
+          compare.style.setProperty("--match", score.toFixed(2));
+          compare.classList.toggle("is-close", score >= 0.68);
+          compare.classList.toggle("is-near", score >= 0.82);
+        }
+        if (matchState) {
+          matchState.textContent = score >= 0.82 ? "거의 다 왔어요" : score >= 0.68 ? "형태가 보이기 시작해요" : "윤곽을 따라 맞춰보세요";
+        }
         if (cleared && !clearShown) {
           clearShown = true;
           saveClear(level.id, score);
