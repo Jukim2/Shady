@@ -62,8 +62,8 @@ export class ShadowGame {
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x607f77, 7, 14);
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    this.camera.position.set(-4.9, -8.4, 2.85);
-    this.camera.lookAt(0.15, 0, -0.08);
+    this.camera.position.set(-4.4, -9.6, 3.05);
+    this.camera.lookAt(-1.05, 0, -0.08);
 
     this.objectRoot = new THREE.Group();
     this.objectRoot.rotation.order = "ZYX";
@@ -342,6 +342,15 @@ export class ShadowGame {
     if (!rect.width || !rect.height) return;
     this.renderer.setSize(rect.width, rect.height, false);
     this.camera.aspect = rect.width / rect.height;
+    if (this.camera.aspect >= 1.2) {
+      this.camera.fov = 31;
+      this.camera.position.set(-4.4, -9.6, 3.05);
+      this.camera.lookAt(-1.05, 0, -0.08);
+    } else {
+      this.camera.fov = 36;
+      this.camera.position.set(-4.9, -8.4, 2.85);
+      this.camera.lookAt(0.15, 0, -0.08);
+    }
     this.camera.updateProjectionMatrix();
   }
 

@@ -122,6 +122,11 @@ function renderPlay(levelId) {
   const playState = routeState;
   app.innerHTML = `
     <main class="screen play-screen">
+      <div class="rotate-device" role="status">
+        <span>${icon("rotate")}</span>
+        <strong>휴대폰을 가로로 돌려주세요</strong>
+        <small>빛과 물체, 그림자를 한 화면에서 맞추는 게임입니다</small>
+      </div>
       <header class="game-hud">
         <button class="game-hud-button" data-nav="#/category/${level.category}" aria-label="레벨 목록으로 돌아가기">${icon("back")}</button>
         <div class="game-level-copy">
@@ -217,6 +222,7 @@ function renderRoute() {
   game?.destroy();
   game = null;
   const route = parseRoute();
+  document.body.classList.toggle("is-playing", route.mode === "play");
   if (route.mode === "category") renderCategory(route.categoryId);
   else if (route.mode === "play") renderPlay(route.levelId);
   else renderHome();
