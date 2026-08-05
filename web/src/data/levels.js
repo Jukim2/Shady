@@ -1,7 +1,9 @@
 const asset = (folder, file) =>
   new URL(`../../../output/${folder}/${file}`, import.meta.url).href;
+const targetAsset = (file) =>
+  new URL(`../../../assets/targets/${file}`, import.meta.url).href;
 
-const createLevel = ({ id, folder, category, order, title, subtitle, difficulty, start, lightMode = "directional", dual = false }) => ({
+const createLevel = ({ id, folder, target, category, order, title, subtitle, difficulty, start, lightMode = "directional", dual = false }) => ({
   id,
   folder,
   category,
@@ -13,7 +15,7 @@ const createLevel = ({ id, folder, category, order, title, subtitle, difficulty,
   lightMode,
   assets: {
     model: asset(folder, "model.obj"),
-    target: asset(folder, "target.png"),
+    target: targetAsset(target),
     preview: asset(folder, "player_view.png"),
     ...(dual ? { targetSecondary: asset(folder, "target_secondary.png") } : {}),
   },
@@ -47,14 +49,14 @@ export const categories = [
 ];
 
 export const levels = [
-  createLevel({ id: "A_cat_blocks", folder: "a_cat_blocks", category: "silhouette", order: 1, title: "고양이", subtitle: "Block Study", difficulty: 1, start: [52, -34, 72] }),
-  createLevel({ id: "B_bird_organic", folder: "b_bird_organic", category: "silhouette", order: 2, title: "새", subtitle: "Organic Curve", difficulty: 1, start: [-42, 58, -64] }),
-  createLevel({ id: "C_elephant_ribbon", folder: "c_elephant_ribbon", category: "silhouette", order: 3, title: "코끼리", subtitle: "Folded Ribbon", difficulty: 2, start: [68, 38, 92] }),
-  createLevel({ id: "D1_fish_disc_rod", folder: "d1_fish_disc_rod", category: "structure", order: 1, title: "물고기", subtitle: "Disc & Rod", difficulty: 2, start: [-62, 46, 105] }),
-  createLevel({ id: "D2_horse_tubular", folder: "d2_horse_tubular", category: "structure", order: 2, title: "말", subtitle: "Tubular Frame", difficulty: 2, start: [78, -48, -88] }),
-  createLevel({ id: "D3_cat_ribs", folder: "d3_cat_ribs", category: "structure", order: 3, title: "고양이 II", subtitle: "Rounded Ribs", difficulty: 3, start: [-76, -44, 112] }),
-  createLevel({ id: "E_teapot_stack", folder: "e_teapot_stack", category: "light", order: 1, title: "주전자", subtitle: "Occlusion Stack", difficulty: 3, start: [82, 52, -98], lightMode: "point" }),
-  createLevel({ id: "F_elephant_dual", folder: "f_elephant_dual", category: "light", order: 2, title: "코끼리 II", subtitle: "Dual Light", difficulty: 3, start: [-68, 62, 118], lightMode: "dual", dual: true }),
+  createLevel({ id: "A_cat_blocks", folder: "a_cat_blocks", target: "cat.png", category: "silhouette", order: 1, title: "고양이", subtitle: "Block Study", difficulty: 1, start: [52, -34, 72] }),
+  createLevel({ id: "B_bird_organic", folder: "b_bird_organic", target: "bird.png", category: "silhouette", order: 2, title: "새", subtitle: "Organic Curve", difficulty: 1, start: [-42, 58, -64] }),
+  createLevel({ id: "C_elephant_ribbon", folder: "c_elephant_ribbon", target: "elephant.png", category: "silhouette", order: 3, title: "코끼리", subtitle: "Folded Ribbon", difficulty: 2, start: [68, 38, 92] }),
+  createLevel({ id: "D1_fish_disc_rod", folder: "d1_fish_disc_rod", target: "fish.png", category: "structure", order: 1, title: "물고기", subtitle: "Disc & Rod", difficulty: 2, start: [-62, 46, 105] }),
+  createLevel({ id: "D2_horse_tubular", folder: "d2_horse_tubular", target: "horse.png", category: "structure", order: 2, title: "말", subtitle: "Tubular Frame", difficulty: 2, start: [78, -48, -88] }),
+  createLevel({ id: "D3_cat_ribs", folder: "d3_cat_ribs", target: "cat.png", category: "structure", order: 3, title: "고양이 II", subtitle: "Rounded Ribs", difficulty: 3, start: [-76, -44, 112] }),
+  createLevel({ id: "E_teapot_stack", folder: "e_teapot_stack", target: "teapot.png", category: "light", order: 1, title: "주전자", subtitle: "Occlusion Stack", difficulty: 3, start: [82, 52, -98], lightMode: "point" }),
+  createLevel({ id: "F_elephant_dual", folder: "f_elephant_dual", target: "elephant.png", category: "light", order: 2, title: "코끼리 II", subtitle: "Dual Light", difficulty: 3, start: [-68, 62, 118], lightMode: "dual", dual: true }),
 ];
 
 export const levelsByCategory = (categoryId) => levels.filter((level) => level.category === categoryId);

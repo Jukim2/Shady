@@ -124,13 +124,23 @@ function renderPlay(levelId) {
       ${pageHeader({ eyebrow: `${category.number} · LEVEL ${String(level.order).padStart(2, "0")}`, title: level.title, back: `#/category/${level.category}` })}
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
-        <div class="target-card">
-          <span>목표 그림자</span>
-          <img src="${level.assets.target}" alt="${level.title} 목표 실루엣" />
-          ${level.assets.targetSecondary ? `<img class="secondary-target" src="${level.assets.targetSecondary}" alt="두 번째 목표 실루엣" />` : ""}
+        <div class="shadow-compare" aria-label="현재 그림자와 목표 그림자 비교">
+          <p><strong>그림자를 맞춰보세요</strong><span>물체를 드래그하면 바로 바뀝니다</span></p>
+          <div class="shadow-pair">
+            <figure class="shadow-card current-shadow-card">
+              <figcaption><i></i>현재 그림자</figcaption>
+              <canvas id="current-shadow" width="256" height="256" aria-label="현재 그림자"></canvas>
+            </figure>
+            <span class="compare-arrow" aria-hidden="true">→</span>
+            <figure class="shadow-card target-card">
+              <figcaption><i></i>목표</figcaption>
+              <img src="${level.assets.target}" alt="${level.title} 목표 실루엣" />
+            </figure>
+          </div>
+          ${level.assets.targetSecondary ? `<div class="secondary-goal"><span>두 번째 목표</span><img src="${level.assets.targetSecondary}" alt="두 번째 목표 실루엣" /></div>` : ""}
         </div>
         <div class="loading-panel" id="loading-panel"><span class="loader"></span><p>형태를 불러오는 중</p></div>
-        <div class="gesture-tip" id="gesture-tip">${icon("rotate")}<span>한 손가락으로 천천히 돌려보세요</span></div>
+        <div class="gesture-tip" id="gesture-tip">${icon("rotate")}<span>손가락을 움직이는 방향으로 돌려보세요</span></div>
       </section>
       <section class="score-panel">
         <div class="score-copy"><span>SHADOW MATCH</span><strong id="score-label">0%</strong></div>
@@ -153,6 +163,7 @@ function renderPlay(levelId) {
     if (routeState !== playState) return;
     const canvas = document.querySelector("#game-canvas");
     game = new ShadowGame(canvas, level, {
+      shadowCanvas: document.querySelector("#current-shadow"),
       onReady: () => {
         routeState.loaded = true;
         document.querySelector("#loading-panel")?.classList.add("hidden");
