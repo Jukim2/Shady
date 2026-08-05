@@ -15,6 +15,7 @@ const icon = (name) => {
     rotate: '<path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/>',
     check: '<path d="M5 12.5l4.2 4L19 7"/>',
     sound: '<path d="M5 10v4h3l4 3V7L8 10H5zm10-1a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/>',
+    light: '<path d="M12 3v2m6.4.6L17 7m4 5h-2M5 12H3m4-5L5.6 5.6M9 17h6m-5 3h4m3-8a5 5 0 1 0-8.4 3.7c.8.7 1.4 1.4 1.4 2.3h4c0-.9.6-1.6 1.4-2.3A5 5 0 0 0 17 12z"/>',
   };
   return `<svg aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
 };
@@ -121,7 +122,14 @@ function renderPlay(levelId) {
   const playState = routeState;
   app.innerHTML = `
     <main class="screen play-screen">
-      ${pageHeader({ eyebrow: `${category.number} · LEVEL ${String(level.order).padStart(2, "0")}`, title: level.title, back: `#/category/${level.category}` })}
+      <header class="game-hud">
+        <button class="game-hud-button" data-nav="#/category/${level.category}" aria-label="레벨 목록으로 돌아가기">${icon("back")}</button>
+        <div class="game-level-copy">
+          <span>CHAPTER ${category.number} · LEVEL ${String(level.order).padStart(2, "0")}</span>
+          <h1>${level.title}</h1>
+        </div>
+        <div class="game-status-dot" aria-label="게임 진행 중"><i></i><span>PLAY</span></div>
+      </header>
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
         <div class="shadow-compare" id="shadow-compare" aria-label="현재 그림자와 목표 윤곽선 비교">
@@ -143,11 +151,14 @@ function renderPlay(levelId) {
         <div class="gesture-tip" id="gesture-tip">${icon("rotate")}<span>손가락을 움직이는 방향으로 돌려보세요</span></div>
       </section>
       <section class="score-panel">
-        <div class="score-copy"><span>SHADOW MATCH</span><strong id="score-label">0%</strong></div>
-        <div class="score-track"><span id="score-fill"></span><i></i></div>
+        <div class="score-copy">
+          <div><span>SHADOW MATCH</span><small id="score-message">숨은 형태를 찾는 중</small></div>
+          <strong id="score-label">0%</strong>
+        </div>
+        <div class="score-track" aria-label="그림자 일치도"><span id="score-fill"></span><i><b>88</b></i></div>
         <div class="play-actions">
-          <button id="reset-level">처음 각도</button>
-          <button id="hint-level" class="hint-button">빛의 힌트</button>
+          <button id="reset-level">${icon("rotate")}<span><small>RESET</small>처음 각도</span></button>
+          <button id="hint-level" class="hint-button">${icon("light")}<span><small>ASSIST</small>빛의 힌트</span></button>
         </div>
       </section>
       <div class="clear-sheet" id="clear-sheet" aria-live="polite">
@@ -175,6 +186,7 @@ function renderPlay(levelId) {
         const fill = document.querySelector("#score-fill");
         const compare = document.querySelector("#shadow-compare");
         const matchState = document.querySelector("#match-state");
+        const scoreMessage = document.querySelector("#score-message");
         if (label) label.textContent = scoreLabel(score);
         if (fill) fill.style.width = `${Math.max(4, score * 100)}%`;
         if (compare) {
@@ -184,6 +196,9 @@ function renderPlay(levelId) {
         }
         if (matchState) {
           matchState.textContent = score >= 0.82 ? "거의 다 왔어요" : score >= 0.68 ? "형태가 보이기 시작해요" : "윤곽을 따라 맞춰보세요";
+        }
+        if (scoreMessage) {
+          scoreMessage.textContent = score >= 0.82 ? "정답 직전 · 조금만 더" : score >= 0.68 ? "좋아요 · 형태가 보여요" : score >= 0.4 ? "빛의 방향을 좁히는 중" : "숨은 형태를 찾는 중";
         }
         if (cleared && !clearShown) {
           clearShown = true;
