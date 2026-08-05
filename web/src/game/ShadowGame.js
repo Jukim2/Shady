@@ -27,6 +27,16 @@ function loadImageMask(url) {
   });
 }
 
+function flipMaskHorizontally(mask) {
+  const flipped = new Uint8Array(mask.length);
+  for (let y = 0; y < SCORE_SIZE; y += 1) {
+    for (let x = 0; x < SCORE_SIZE; x += 1) {
+      flipped[y * SCORE_SIZE + x] = mask[y * SCORE_SIZE + (SCORE_SIZE - 1 - x)];
+    }
+  }
+  return flipped;
+}
+
 export class ShadowGame {
   constructor(canvas, level, callbacks = {}) {
     this.canvas = canvas;
@@ -52,11 +62,12 @@ export class ShadowGame {
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x607f77, 7, 14);
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    this.camera.position.set(4.65, -7.25, 3.25);
-    this.camera.lookAt(-0.35, 0.05, -0.05);
+    this.camera.position.set(-4.9, -8.4, 2.85);
+    this.camera.lookAt(0.15, 0, -0.08);
 
     this.objectRoot = new THREE.Group();
     this.objectRoot.rotation.order = "ZYX";
+    this.objectRoot.scale.setScalar(0.84);
     this.scene.add(this.objectRoot);
 
     this.environment = new THREE.Group();
@@ -70,7 +81,7 @@ export class ShadowGame {
       stencilBuffer: false,
       samples: 4,
     });
-    this.scoreCameraX = this.makeScoreCamera("x");
+    this.scoreCameraX = this.makeScoreCamera("negativeX");
     this.scoreCameraY = this.makeScoreCamera("y");
 
     this.onPointerDown = this.onPointerDown.bind(this);
@@ -92,9 +103,9 @@ export class ShadowGame {
 
   buildEnvironment() {
     const projectionBasis = new THREE.Matrix4().makeBasis(
-      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, -1, 0),
       new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(-1, 0, 0),
     );
 
     const wallFrame = new THREE.Mesh(
@@ -102,7 +113,7 @@ export class ShadowGame {
       new THREE.MeshStandardMaterial({ color: 0x35544d, roughness: 0.96 }),
     );
     wallFrame.setRotationFromMatrix(projectionBasis);
-    wallFrame.position.set(-1.94, 0, 0.85);
+    wallFrame.position.set(1.94, 0, 0.85);
     this.environment.add(wallFrame);
 
     this.shadowWall = new THREE.Mesh(
@@ -110,7 +121,7 @@ export class ShadowGame {
       new THREE.MeshStandardMaterial({ color: 0xe9dfc7, roughness: 0.94, metalness: 0 }),
     );
     this.shadowWall.setRotationFromMatrix(projectionBasis);
-    this.shadowWall.position.set(-1.9, 0, 0.85);
+    this.shadowWall.position.set(1.9, 0, 0.85);
     this.shadowWall.receiveShadow = true;
     this.environment.add(this.shadowWall);
 
@@ -131,14 +142,14 @@ export class ShadowGame {
     platform.receiveShadow = true;
     this.environment.add(platform);
 
-    this.scene.add(new THREE.HemisphereLight(0xdceae3, 0x294940, 1.15));
+    this.scene.add(new THREE.HemisphereLight(0xdceae3, 0x294940, 0.78));
 
-    const lightPosition = new THREE.Vector3(5.5, 0, 0.15);
+    const lightPosition = new THREE.Vector3(-5.5, 0, 0.15);
     const lightTarget = new THREE.Object3D();
-    lightTarget.position.set(-2.2, 0, 0.15);
+    lightTarget.position.set(2.2, 0, 0.15);
     this.environment.add(lightTarget);
 
-    const key = new THREE.DirectionalLight(0xffdfa0, 4.8);
+    const key = new THREE.DirectionalLight(0xffdfa0, 5.25);
     key.position.copy(lightPosition);
     key.target = lightTarget;
     key.castShadow = true;
@@ -179,15 +190,15 @@ export class ShadowGame {
     beam.renderOrder = 1;
     this.environment.add(beam);
 
-    const rim = new THREE.DirectionalLight(0xf47c55, 1.55);
-    rim.position.set(4, -1, 2.2);
+    const rim = new THREE.DirectionalLight(0xf47c55, 1.35);
+    rim.position.set(-3, -2, 2.2);
     this.scene.add(rim);
   }
 
   makeScoreCamera(axis) {
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+    const camera = new THREE.OrthographicCamera(-0.84, 0.84, 0.84, -0.84, 0.1, 10);
     camera.up.set(0, 0, 1);
-    camera.position.set(axis === "x" ? 4 : 0, axis === "y" ? 4 : 0, 0);
+    camera.position.set(axis === "negativeX" ? -4 : 0, axis === "y" ? 4 : 0, 0);
     camera.lookAt(0, 0, 0);
     return camera;
   }
@@ -224,8 +235,8 @@ export class ShadowGame {
       });
       this.model = object;
       this.objectRoot.add(object);
-      this.targetMasks = targetMasks;
-      this.addTargetProjection(targetMasks[0]);
+      this.targetMasks = [flipMaskHorizontally(targetMasks[0]), ...targetMasks.slice(1)];
+      this.addTargetProjection(this.targetMasks[0]);
       this.reset(false);
       this.loaded = true;
       this.callbacks.onReady?.();
@@ -259,7 +270,7 @@ export class ShadowGame {
       image.data[index * 4] = 237;
       image.data[index * 4 + 1] = 112;
       image.data[index * 4 + 2] = 72;
-      image.data[index * 4 + 3] = isEdge ? 235 : 18;
+      image.data[index * 4 + 3] = isEdge ? 255 : 42;
     }
 
     sourceContext.putImageData(image, 0, 0);
@@ -272,7 +283,7 @@ export class ShadowGame {
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
     const goal = new THREE.Mesh(
-      new THREE.PlaneGeometry(2, 2),
+      new THREE.PlaneGeometry(1.68, 1.68),
       new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
@@ -282,12 +293,12 @@ export class ShadowGame {
       }),
     );
     const projectionBasis = new THREE.Matrix4().makeBasis(
-      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, -1, 0),
       new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(-1, 0, 0),
     );
     goal.setRotationFromMatrix(projectionBasis);
-    goal.position.set(-1.87, 0, 0);
+    goal.position.set(1.87, 0, 0);
     goal.renderOrder = 3;
     this.environment.add(goal);
     this.goalProjection = goal;

@@ -84,7 +84,7 @@ svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-
 .chapter-nav button.active { color: white; background: var(--accent); border-color: var(--accent); }
 
 .play-screen { position: relative; height: 100dvh; background: #607f77; }
-.game-hud { position: absolute; z-index: 6; top: 0; left: 0; right: 0; min-height: 5.25rem; padding: calc(env(safe-area-inset-top) + .75rem) .8rem .75rem; color: #fff8ea; background: linear-gradient(to bottom, rgba(15,35,30,.72), rgba(15,35,30,.28) 72%, transparent); display: grid; grid-template-columns: 2.75rem 1fr 2.75rem; align-items: center; gap: .7rem; pointer-events: none; }
+.game-hud { position: absolute; z-index: 6; top: 0; left: 0; right: 0; min-height: 5rem; padding: calc(env(safe-area-inset-top) + .65rem) .8rem .7rem; color: #fff8ea; background: linear-gradient(to bottom, rgba(13,31,27,.82), rgba(13,31,27,.18) 76%, transparent); display: grid; grid-template-columns: 2.75rem 1fr 2.75rem; align-items: center; gap: .7rem; pointer-events: none; }
 .game-hud-button { width: 2.65rem; height: 2.65rem; padding: 0; border: 1px solid rgba(255,245,222,.32); border-radius: 50%; color: #fff8ea; background: rgba(20,42,36,.5); backdrop-filter: blur(10px); display: grid; place-items: center; cursor: pointer; pointer-events: auto; }
 .game-level-copy { min-width: 0; text-align: center; }
 .game-level-copy span { display: block; margin-bottom: .2rem; color: #f0a16b; font-size: .52rem; font-weight: 850; letter-spacing: .14em; }
@@ -104,7 +104,7 @@ svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-
 @keyframes spin { to { transform: rotate(360deg); } }
 .gesture-tip { position: absolute; z-index: 3; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 9.8rem); transform: translateX(-50%); width: max-content; max-width: 94%; padding: .65rem .9rem; border: 1px solid rgba(255,235,193,.2); border-radius: 99px; color: #fff7e7; background: rgba(21, 43, 36, .82); box-shadow: 0 8px 24px rgba(13,31,26,.2); backdrop-filter: blur(8px); display: flex; align-items: center; gap: .5rem; font-size: .68rem; transition: opacity .25s, transform .25s; }
 .gesture-tip.hidden { opacity: 0; transform: translate(-50%, .7rem); pointer-events: none; }
-.score-panel { position: absolute; z-index: 4; left: .75rem; right: .75rem; bottom: calc(env(safe-area-inset-bottom) + .75rem); padding: .9rem; color: #fff8ea; background: rgba(17,38,32,.88); border: 1px solid rgba(255,242,215,.18); box-shadow: 0 16px 44px rgba(8,23,18,.3); backdrop-filter: blur(16px); }
+.score-panel { position: absolute; z-index: 4; left: .75rem; right: .75rem; bottom: calc(env(safe-area-inset-bottom) + .75rem); padding: .9rem; color: #fff8ea; background: rgba(14,31,27,.94); border: 1px solid rgba(255,242,215,.2); box-shadow: 0 14px 36px rgba(8,23,18,.34); }
 .score-copy { display: flex; align-items: baseline; justify-content: space-between; }
 .score-copy > div { display: grid; gap: .15rem; }
 .score-copy span { color: #f0a16b; font-size: .52rem; font-weight: 850; letter-spacing: .15em; }

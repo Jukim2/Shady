@@ -128,7 +128,7 @@ function renderPlay(levelId) {
           <span>CHAPTER ${category.number} · LEVEL ${String(level.order).padStart(2, "0")}</span>
           <h1>${level.title}</h1>
         </div>
-        <div class="game-status-dot" aria-label="게임 진행 중"><i></i><span>PLAY</span></div>
+        <div class="game-status-dot" aria-label="현재 레벨"><i></i><span>L${String(level.order).padStart(2, "0")}</span></div>
       </header>
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
