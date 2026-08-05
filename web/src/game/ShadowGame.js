@@ -48,14 +48,17 @@ export class ShadowGame {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.08;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setClearColor(0xc9dfd8, 1);
+    this.renderer.setClearColor(0x607f77, 1);
 
     this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.Fog(0x607f77, 7, 14);
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    this.camera.position.set(3.5, -5.4, 3.1);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.set(3.8, -6.8, 3.05);
+    this.camera.lookAt(0, 0.3, -0.05);
 
     this.objectRoot = new THREE.Group();
     this.objectRoot.rotation.order = "ZYX";
@@ -93,32 +96,86 @@ export class ShadowGame {
   }
 
   buildEnvironment() {
-    const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(2.4, 64),
-      new THREE.MeshStandardMaterial({ color: 0xb5d2c9, roughness: 1 }),
+    const wallFrame = new THREE.Mesh(
+      new THREE.PlaneGeometry(7.55, 5.15),
+      new THREE.MeshStandardMaterial({ color: 0x35544d, roughness: 0.96 }),
     );
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.z = -1.28;
+    wallFrame.rotation.x = Math.PI / 2;
+    wallFrame.position.set(0, 2.15, 0.45);
+    this.environment.add(wallFrame);
+
+    const shadowWall = new THREE.Mesh(
+      new THREE.PlaneGeometry(7.2, 4.8),
+      new THREE.MeshStandardMaterial({ color: 0xe9dfc7, roughness: 0.94, metalness: 0 }),
+    );
+    shadowWall.rotation.x = Math.PI / 2;
+    shadowWall.position.set(0, 2.1, 0.45);
+    shadowWall.receiveShadow = true;
+    this.environment.add(shadowWall);
+
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(12, 11),
+      new THREE.MeshStandardMaterial({ color: 0x55756d, roughness: 0.98 }),
+    );
+    floor.position.set(0, 0, -1.3);
     floor.receiveShadow = true;
     this.environment.add(floor);
 
-    const halo = new THREE.Mesh(
-      new THREE.RingGeometry(1.52, 1.535, 80),
-      new THREE.MeshBasicMaterial({ color: 0xf8f3e8, transparent: true, opacity: 0.72, side: THREE.DoubleSide }),
+    const platform = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.55, 1.72, 0.12, 64),
+      new THREE.MeshStandardMaterial({ color: 0x46665e, roughness: 0.82, metalness: 0.04 }),
     );
-    halo.position.set(-0.4, 0.45, 0.15);
-    halo.lookAt(this.camera.position);
-    this.environment.add(halo);
+    platform.rotation.x = Math.PI / 2;
+    platform.position.z = -1.28;
+    platform.receiveShadow = true;
+    this.environment.add(platform);
 
-    this.scene.add(new THREE.HemisphereLight(0xfffbec, 0x4a766e, 2.4));
-    const key = new THREE.DirectionalLight(0xfff4d5, 4.5);
-    key.position.set(-3, -4, 6);
+    this.scene.add(new THREE.HemisphereLight(0xdceae3, 0x294940, 1.15));
+
+    const lightPosition = new THREE.Vector3(-3.2, -4.1, 4.2);
+    const lightTarget = new THREE.Object3D();
+    lightTarget.position.set(0, 2.05, 0.2);
+    this.environment.add(lightTarget);
+
+    const key = new THREE.SpotLight(0xffdfa0, 72, 18, Math.PI * 0.21, 0.72, 1.35);
+    key.position.copy(lightPosition);
+    key.target = lightTarget;
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
-    key.shadow.radius = 5;
+    key.shadow.camera.near = 0.5;
+    key.shadow.camera.far = 18;
+    key.shadow.bias = -0.00035;
+    key.shadow.normalBias = 0.025;
+    key.shadow.radius = 4;
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0xf57a4e, 2.2);
-    rim.position.set(4, 2, 1);
+
+    const lamp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.11, 24, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffe3a8 }),
+    );
+    lamp.position.copy(lightPosition);
+    this.environment.add(lamp);
+
+    const beamDirection = lightTarget.position.clone().sub(lightPosition);
+    const beamLength = beamDirection.length();
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.05, 0.08, beamLength, 48, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0xffe8b4,
+        transparent: true,
+        opacity: 0.045,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    beam.position.copy(lightPosition).add(lightTarget.position).multiplyScalar(0.5);
+    beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), beamDirection.normalize());
+    beam.renderOrder = 1;
+    this.environment.add(beam);
+
+    const rim = new THREE.DirectionalLight(0xf47c55, 1.55);
+    rim.position.set(4, -1, 2.2);
     this.scene.add(rim);
   }
 
