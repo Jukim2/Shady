@@ -49,10 +49,14 @@ function renderHome() {
   app.innerHTML = `
     <main class="screen home-screen">
       <section class="hero">
-        <div class="sun-disc" aria-hidden="true"><span></span><span></span><span></span></div>
-        <p class="brand-mark">SHADY</p>
-        <h1>돌리면,<br /><em>그림자가 답이 된다.</em></h1>
-        <p class="hero-copy">낯선 조각을 천천히 돌려<br />빛 속에 숨은 모양을 찾아보세요.</p>
+        <p class="brand-mark">SHADY <small>SHADOW PUZZLE</small></p>
+        <div class="hero-stage" aria-hidden="true">
+          <span class="hero-wall"><img src="${levels[0].assets.target}" alt="" /><small>TARGET SHADOW</small></span>
+          <img class="hero-object" src="${levels[0].assets.preview}" alt="" />
+        </div>
+        <p class="hero-kicker">LIGHT · OBJECT · SHADOW</p>
+        <h1>빛을 돌려,<br /><em>숨은 형상을 찾다.</em></h1>
+        <p class="hero-copy">하나의 물체, 하나의 빛, 하나의 정답.<br />손끝으로 그림자를 완성하세요.</p>
         <button class="primary-button" data-nav="#/category/silhouette">
           퍼즐 시작 <span>${icon("arrow")}</span>
         </button>
@@ -152,6 +156,13 @@ function renderPlay(levelId) {
           <button id="hint-level" class="hint-button">${icon("light")}<span><small>ASSIST</small>빛의 힌트</span></button>
         </div>
       </section>
+      <div class="completion-confirm" id="completion-confirm" aria-live="polite">
+        <div>
+          <p class="eyebrow">100% ALIGNED</p>
+          <strong>완성된 그림자를 확인해보세요</strong>
+        </div>
+        <button id="confirm-clear">확인</button>
+      </div>
       <div class="clear-sheet" id="clear-sheet" aria-live="polite">
         <div class="clear-mark">${icon("check")}</div>
         <p class="eyebrow">SHADOW FOUND</p>
@@ -178,12 +189,18 @@ function renderPlay(levelId) {
         if (label) label.textContent = scoreLabel(score);
         if (fill) fill.style.width = `${Math.max(4, score * 100)}%`;
         if (scoreMessage) {
-          scoreMessage.textContent = score >= 0.82 ? "정답 직전 · 조금만 더" : score >= 0.68 ? "좋아요 · 형태가 보여요" : score >= 0.4 ? "빛의 방향을 좁히는 중" : "숨은 형태를 찾는 중";
+          scoreMessage.textContent = score >= 0.995 ? "그림자가 완성됐어요" : score >= 0.82 ? "정답 직전 · 조금만 더" : score >= 0.68 ? "좋아요 · 형태가 보여요" : score >= 0.4 ? "빛의 방향을 좁히는 중" : "숨은 형태를 찾는 중";
         }
         if (cleared && !clearShown) {
           clearShown = true;
-          saveClear(level.id, score);
-          document.querySelector("#clear-sheet")?.classList.add("visible");
+          document.querySelector(".play-screen")?.classList.add("is-completing");
+          document.querySelector("#gesture-tip")?.classList.add("hidden");
+          game?.complete(() => {
+            saveClear(level.id, 1);
+            document.querySelector(".play-screen")?.classList.remove("is-completing");
+            document.querySelector(".play-screen")?.classList.add("is-complete");
+            document.querySelector("#completion-confirm")?.classList.add("visible");
+          });
         }
       },
       onError: (error) => {
@@ -197,6 +214,10 @@ function renderPlay(levelId) {
     document.querySelector("#hint-level")?.addEventListener("click", () => game?.hint());
     document.querySelector("#fullscreen-game")?.addEventListener("click", enterFullscreenPlay);
     document.querySelector("#rotate-fullscreen")?.addEventListener("click", enterFullscreenPlay);
+    document.querySelector("#confirm-clear")?.addEventListener("click", () => {
+      document.querySelector("#completion-confirm")?.classList.remove("visible");
+      window.setTimeout(() => document.querySelector("#clear-sheet")?.classList.add("visible"), 180);
+    });
     document.querySelector("#next-level")?.addEventListener("click", () => {
       const categoryLevels = levelsByCategory(level.category);
       const next = categoryLevels[categoryLevels.findIndex((item) => item.id === level.id) + 1];
