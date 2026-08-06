@@ -117,7 +117,7 @@ function renderCategory(categoryId) {
 
 function renderPlay(levelId) {
   const level = getLevel(levelId);
-  const category = getCategory(level.category);
+  const gameOrder = levels.findIndex((item) => item.id === level.id) + 1;
   clearShown = false;
   routeState = { mode: "play", levelId, loaded: false, match: 0 };
   const playState = routeState;
@@ -132,24 +132,18 @@ function renderPlay(levelId) {
       <header class="game-hud">
         <button class="game-hud-button" data-nav="#/category/${level.category}" aria-label="레벨 목록으로 돌아가기">${icon("back")}</button>
         <div class="game-level-copy">
-          <span>CHAPTER ${category.number} · LEVEL ${String(level.order).padStart(2, "0")}</span>
-          <h1>${level.title}</h1>
+          <h1><small>${String(gameOrder).padStart(2, "0")}</small>${level.title}</h1>
         </div>
         <button class="game-hud-button fullscreen-button" id="fullscreen-game" aria-label="전체화면으로 전환">${icon("fullscreen")}</button>
       </header>
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
         <div class="loading-panel" id="loading-panel"><span class="loader"></span><p>형태를 불러오는 중</p></div>
-        <div class="scene-guide" aria-hidden="true">
-          <span><i></i>LIGHT</span>
-          <span><i></i>ROTATE OBJECT</span>
-          <span><i></i>SHADOW + GOAL</span>
-        </div>
         <div class="gesture-tip" id="gesture-tip">${icon("rotate")}<span>손가락을 움직이는 방향으로 돌려보세요</span></div>
       </section>
       <section class="score-panel">
         <div class="score-copy">
-          <div><span>SHADOW MATCH</span><small id="score-message">숨은 형태를 찾는 중</small></div>
+          <div><span>SHADOW MATCH</span><small id="score-message" aria-live="polite">숨은 형태를 찾는 중</small></div>
           <strong id="score-label">0%</strong>
         </div>
         <div class="score-track" aria-label="그림자 일치도"><span id="score-fill"></span><i><b>88</b></i></div>
