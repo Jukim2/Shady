@@ -16,6 +16,7 @@ const icon = (name) => {
     check: '<path d="M5 12.5l4.2 4L19 7"/>',
     sound: '<path d="M5 10v4h3l4 3V7L8 10H5zm10-1a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/>',
     light: '<path d="M12 3v2m6.4.6L17 7m4 5h-2M5 12H3m4-5L5.6 5.6M9 17h6m-5 3h4m3-8a5 5 0 1 0-8.4 3.7c.8.7 1.4 1.4 1.4 2.3h4c0-.9.6-1.6 1.4-2.3A5 5 0 0 0 17 12z"/>',
+    fullscreen: '<path d="M8 3H3v5M16 3h5v5M3 16v5h5m13-5v5h-5"/>',
   };
   return `<svg aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
 };
@@ -126,6 +127,7 @@ function renderPlay(levelId) {
         <span>${icon("rotate")}</span>
         <strong>휴대폰을 가로로 돌려주세요</strong>
         <small>빛과 물체, 그림자를 한 화면에서 맞추는 게임입니다</small>
+        <button id="rotate-fullscreen">가로 전체화면으로 시작</button>
       </div>
       <header class="game-hud">
         <button class="game-hud-button" data-nav="#/category/${level.category}" aria-label="레벨 목록으로 돌아가기">${icon("back")}</button>
@@ -133,11 +135,16 @@ function renderPlay(levelId) {
           <span>CHAPTER ${category.number} · LEVEL ${String(level.order).padStart(2, "0")}</span>
           <h1>${level.title}</h1>
         </div>
-        <div class="game-status-dot" aria-label="현재 레벨"><i></i><span>L${String(level.order).padStart(2, "0")}</span></div>
+        <button class="game-hud-button fullscreen-button" id="fullscreen-game" aria-label="전체화면으로 전환">${icon("fullscreen")}</button>
       </header>
       <section class="play-shell">
         <canvas id="game-canvas" aria-label="회전 가능한 ${level.title} 그림자 퍼즐"></canvas>
         <div class="loading-panel" id="loading-panel"><span class="loader"></span><p>형태를 불러오는 중</p></div>
+        <div class="scene-guide" aria-hidden="true">
+          <span><i></i>LIGHT</span>
+          <span><i></i>ROTATE OBJECT</span>
+          <span><i></i>SHADOW + GOAL</span>
+        </div>
         <div class="gesture-tip" id="gesture-tip">${icon("rotate")}<span>손가락을 움직이는 방향으로 돌려보세요</span></div>
       </section>
       <section class="score-panel">
@@ -194,6 +201,8 @@ function renderPlay(levelId) {
 
     document.querySelector("#reset-level")?.addEventListener("click", () => game?.reset());
     document.querySelector("#hint-level")?.addEventListener("click", () => game?.hint());
+    document.querySelector("#fullscreen-game")?.addEventListener("click", enterFullscreenPlay);
+    document.querySelector("#rotate-fullscreen")?.addEventListener("click", enterFullscreenPlay);
     document.querySelector("#next-level")?.addEventListener("click", () => {
       const categoryLevels = levelsByCategory(level.category);
       const next = categoryLevels[categoryLevels.findIndex((item) => item.id === level.id) + 1];
@@ -205,6 +214,17 @@ function renderPlay(levelId) {
     const panel = document.querySelector("#loading-panel");
     if (panel) panel.innerHTML = `<p>플레이어를 시작하지 못했어요.<br /><small>${error.message}</small></p>`;
   });
+}
+
+async function enterFullscreenPlay() {
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+    }
+    if (screen.orientation?.lock) await screen.orientation.lock("landscape");
+  } catch {
+    // Fullscreen and orientation lock are optional browser capabilities.
+  }
 }
 
 function attachCommonEvents() {
@@ -236,3 +256,9 @@ window.advanceTime = () => game?.renderer.render(game.scene, game.camera);
 window.__SHADY_TEST__ = { solve: () => game?.solve(), resetProgress };
 
 renderRoute();
+
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
+  });
+}
